@@ -27,7 +27,7 @@ def get_cell_color(workbook, sheet_name, row, col):
                 rgb_lower = rgb.lower()
                 
                 # Проверяем, красный ли цвет (00FF0000 или FF0000)
-                if rgb_lower == '00ff0000':  # ARGB формат
+                if rgb_lower == 'ffff0000':  # ARGB формат
                     st.write("Detected red color (ARGB 00FF0000)")
                     return 'red'
                 # Проверяем HEX без префикса (FF0000)
