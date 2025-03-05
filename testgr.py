@@ -8,21 +8,33 @@ import random
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функция для определения цвета ячейки
+# Функция для определения цвета ячеки с отладочной информацией
 def get_cell_color(workbook, sheet_name, row, col):
-    """Извлекает цвет заливки ячейки из Excel-файла."""
+    """Извлекает цвет заливки ячейки из Excel-файла с отладкой."""
     try:
         worksheet = workbook[sheet_name]
         cell = worksheet.cell(row=row, column=col)
         fill = cell.fill
+        
+        st.write(f"Row: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
+        
         if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
             rgb = fill.fgColor.rgb
             if rgb:
                 # Удаляем префикс 'FF' (если есть) и преобразуем в HEX
                 hex_color = f'#{rgb[2:] if rgb.startswith("FF") else rgb}'
-                # Проверяем, красный ли цвет
-                if hex_color.lower() in ['#ff0000', '#ff0000ff']:  # Красный
+                st.write(f"Detected HEX color: {hex_color}")
+                
+                # Проверяем, красный ли цвет (расширенная проверка)
+                if hex_color.lower() in ['#ff0000', '#ff0000ff', '#ff0000']:  # Красный (разные варианты)
                     return 'red'
+                # Дополнительные варианты красного (например, с разной прозрачностью или оттенками)
+                elif hex_color.lower().startswith('#ff') and len(hex_color) >= 7:  # Проверяем, начинается ли с FF (красный компонент)
+                    return 'red'
+            else:
+                st.write("No RGB color found in fill.")
+        else:
+            st.write("Fill is not PatternFill or not solid.")
         return None  # Возвращаем None, если цвет не красный
     except Exception as e:
         st.error(f"Ошибка при чтении цвета ячейки: {str(e)}")
