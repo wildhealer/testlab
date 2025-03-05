@@ -8,24 +8,33 @@ import random
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функция для определения цвета ячейки
+# Функция для определения цвета ячейки с расширенной отладкой
 def get_cell_color(workbook, sheet_name, row, col):
-    """Извлекает цвет заливки ячейки из Excel-файла."""
+    """Извлекает цвет заливки ячейки из Excel-файла с расширенной отладкой."""
     try:
         worksheet = workbook[sheet_name]
         cell = worksheet.cell(row=row, column=col)
         fill = cell.fill
+        
+        st.write(f"Row: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
         
         if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
             rgb = fill.fgColor.rgb
             if rgb:
                 # Преобразуем RGB в HEX, добавляя '#' и проверяя префикс 'FF'
                 hex_color = f'#{rgb}' if len(rgb) == 6 else f'#{rgb[2:]}' if rgb.startswith('FF') else f'#{rgb}'
-                st.write(f"Row: {row}, Col: {col}, Detected HEX color: {hex_color}")
+                st.write(f"Detected HEX color: {hex_color}")
                 
-                # Проверяем, красный ли цвет (FF0000)
-                if hex_color.lower() in ['#ff0000', '#ff0000ff']:  # Красный
+                # Проверяем, красный ли цвет (расширенная проверка)
+                if hex_color.lower() in ['#ff0000', '#ff0000ff', '#ff0000', '#ff1a1a', '#ff4040']:  # Добавлены возможные оттенки красного
                     return 'red'
+                # Проверяем, есть ли другие цвета (для отладки)
+                elif hex_color.lower() in ['#ffff00', '#d3d3d3']:  # Жёлтый и серый
+                    st.write(f"Non-red color detected: {hex_color}")
+            else:
+                st.write("No RGB color found in fill.")
+        else:
+            st.write("Fill is not PatternFill or not solid.")
         return None  # Возвращаем None, если цвет не красный
     except Exception as e:
         st.error(f"Ошибка при чтении цвета ячейки: {str(e)}")
@@ -44,6 +53,10 @@ if uploaded_file is not None:
         # Открываем файл с помощью openpyxl для чтения цветов
         wb = openpyxl.load_workbook(uploaded_file)
         sheet_name = wb.sheetnames[0]  # Берем первый лист
+        
+        # Выводим структуру DataFrame для отладки
+        st.write("DataFrame structure:")
+        st.write(df)
         
         # Выбор нескольких характеристик
         params = st.multiselect("Выберите характеристики", df.index.tolist())
@@ -69,6 +82,10 @@ if uploaded_file is not None:
                 # Рисуем линию
                 ax.plot(x_data, y_data, color=color, label=param, linewidth=2)
                 
+                # Проверяем конкретно для "Экзистенциальные приключения Пятачка"
+                if param == "Экзистенциальные приключения Пятачка":
+                    st.write(f"Processing param: {param}, X-data: {x_data}")
+                
                 # Извлекаем цвета для каждой ячейки в строке характеристики
                 point_colors = []
                 for col in range(2, len(df.columns) + 2):  # Начинаем со второго столбца (индекс 2)
@@ -80,6 +97,7 @@ if uploaded_file is not None:
                 for x, y, point_color in zip(x_data, y_data, point_colors):
                     if point_color == 'red':  # Рисуем точку только если ячейка красная
                         ax.scatter(x, y, color='red', s=50, edgecolor='black', zorder=5)
+                        st.write(f"Red point at X: {x}, Y: {y}, Row: {row}, Col: {col}")
             
             # Настройка меток осей
             ax.set_xlabel("Время")
