@@ -18,7 +18,8 @@ def get_cell_color(workbook, sheet_name, row, col):
         
         st.write(f"Row: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
         
-        if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
+       # if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
+        if isinstance(fill, PatternFill):    
             rgb = fill.fgColor.rgb
             if rgb:
                 # Проверяем формат ARGB (например, 00FF0000) или HEX
