@@ -16,7 +16,7 @@ def get_cell_color(workbook, sheet_name, row, col):
         cell = worksheet.cell(row=row, column=col)
         fill = cell.fill
         
-        st.write(f"Row: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
+        st.write(f"Row!!!!: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
         
        # if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
         if isinstance(fill, openpyxl.styles.fills.PatternFill):    
