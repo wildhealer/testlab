@@ -8,9 +8,9 @@ import random
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функция для определения цвета ячейки с расширенной отладкой
+# Функция для определения цвета ячейки с учётом формата ARGB
 def get_cell_color(workbook, sheet_name, row, col):
-    """Извлекает цвет заливки ячейки из Excel-файла с расширенной отладкой."""
+    """Извлекает цвет заливки ячейки из Excel-файла с учётом формата ARGB."""
     try:
         worksheet = workbook[sheet_name]
         cell = worksheet.cell(row=row, column=col)
@@ -21,16 +21,16 @@ def get_cell_color(workbook, sheet_name, row, col):
         if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
             rgb = fill.fgColor.rgb
             if rgb:
-                # Преобразуем RGB в HEX, добавляя '#' и проверяя префикс 'FF'
-                hex_color = f'#{rgb}' if len(rgb) == 6 else f'#{rgb[2:]}' if rgb.startswith('FF') else f'#{rgb}'
-                st.write(f"Detected HEX color: {hex_color}")
+                # Проверяем формат ARGB (например, 00FF0000)
+                hex_color = f'#{rgb}' if len(rgb) == 6 else f'#{rgb[2:]}' if rgb.startswith('00') else f'#{rgb}'
+                st.write(f"Detected ARGB/HEX color: {hex_color}")
                 
-                # Проверяем, красный ли цвет (расширенная проверка)
-                if hex_color.lower() in ['#ff0000', '#ff0000ff', '#ff0000', '#ff1a1a', '#ff4040']:  # Добавлены возможные оттенки красного
+                # Проверяем, красный ли цвет (00FF0000 -> #FF0000)
+                if rgb.lower() == '00ff0000':  # Проверяем прямой ARGB формат
                     return 'red'
-                # Проверяем, есть ли другие цвета (для отладки)
-                elif hex_color.lower() in ['#ffff00', '#d3d3d3']:  # Жёлтый и серый
-                    st.write(f"Non-red color detected: {hex_color}")
+                # Проверяем, если цвет уже в HEX без префикса (FF0000)
+                elif hex_color.lower() in ['#ff0000', '#ff0000ff']:  # Дополнительно проверяем HEX
+                    return 'red'
             else:
                 st.write("No RGB color found in fill.")
         else:
