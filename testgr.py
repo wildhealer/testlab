@@ -117,7 +117,7 @@ if uploaded_file is not None:
                 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
             
             # Помещаем легенду под графиком
-            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.2), ncol=3, fontsize='small')
+            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=3, fontsize='small')
             
             # Добавляем мелкую сетку (minor grid) с низкой прозрачностью
             ax.minorticks_on()  # Включаем мелкие деления
