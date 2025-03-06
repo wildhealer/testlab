@@ -116,7 +116,7 @@ if uploaded_file is not None:
                 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
             
             # Помещаем легенду под графиком
-            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.9), ncol=3, fontsize='small')
+            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.5), ncol=3, fontsize='small')
             
             # Добавляем сетку
             ax.grid(True, linestyle='--', alpha=0.7)
