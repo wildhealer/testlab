@@ -6,8 +6,9 @@ import openpyxl
 from openpyxl.styles import PatternFill
 import random
 import os
+from datetime import datetime
 
-st.title("График голосования с индикатором 1 голос")
+st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
 # Функция для определения цвета ячейки
 def get_cell_color(workbook, sheet_name, row, col):
@@ -65,7 +66,7 @@ if uploaded_file is not None:
         sheet_name = wb.sheetnames[0]  # Берем первый лист
         
         # Выбор нескольких характеристик
-        params = st.multiselect("Выберите рассказы", df.index.tolist())
+        params = st.multiselect("Выберите характеристики", df.index.tolist())
         
         if params:  # Если выбраны хотя бы одна характеристика
             # Построение графика
@@ -103,7 +104,7 @@ if uploaded_file is not None:
             # Настройка меток осей
             ax.set_xlabel("Время")
             ax.set_ylabel("Значение")
-            ax.set_title("Графики выбранных рассказов")
+            ax.set_title("Графики выбранных характеристик")
             
             # Ротация меток на оси X и настройка интервала
             plt.xticks(rotation=45, ha="right")
@@ -116,14 +117,41 @@ if uploaded_file is not None:
                 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
             
             # Помещаем легенду под графиком
-            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=3, fontsize='small')
+            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.2), ncol=3, fontsize='small')
             
-            # Добавляем сетку
-            ax.grid(True, linestyle='--', alpha=0.7)
+            # Добавляем мелкую сетку (minor grid) с низкой прозрачностью
+            ax.minorticks_on()  # Включаем мелкие деления
+            ax.grid(which='major', linestyle='--', alpha=0.7)  # Основная сетка
+            ax.grid(which='minor', linestyle=':', alpha=0.2)  # Мелкая сетка (едва видимая)
+            
+            # Добавляем вертикальные полосы для обозначения дней
+            try:
+                # Предполагаем, что x_data — это временные метки в формате "DD.MM HH:MM"
+                dates = [datetime.strptime(str(x), '%d.%m %H:%M') for x in x_data]
+                # Определяем дни (без учёта времени)
+                days = [d.date() for d in dates]
+                unique_days = sorted(set(days))  # Уникальные дни
+                
+                # Чередуем нежно-жёлтые и белые полосы
+                for i, day in enumerate(unique_days):
+                    day_indices = [j for j, d in enumerate(days) if d == day]
+                    if day_indices:
+                        # Начало и конец полосы (индексы)
+                        start_idx = day_indices[0]
+                        end_idx = day_indices[-1] + 1 if day_indices[-1] < len(x_data) - 1 else day_indices[-1]
+                        
+                        # Чередуем цвета: нежно-жёлтый и белый
+                        fill_color = '#FFFFE0' if i % 2 == 0 else 'white'  # Нежно-жёлтый (#FFFFE0) и белый
+                        ax.axvspan(start_idx, end_idx, facecolor=fill_color, alpha=0.3, zorder=0)
+            except ValueError:
+                # Если x_data не в формате даты/времени, просто чередуем полосы по индексам
+                for i in range(len(x_data)):
+                    fill_color = '#FFFFE0' if i % 2 == 0 else 'white'
+                    ax.axvspan(i, i + 1, facecolor=fill_color, alpha=0.3, zorder=0)
             
             # Отображение графика
             st.pyplot(fig)
         else:
-            st.write("Пожалуйста, выберите хотя бы один рассказ.")
+            st.write("Пожалуйста, выберите хотя бы одну характеристику.")
     except Exception as e:
         st.error(f"Ошибка: {str(e)}")
