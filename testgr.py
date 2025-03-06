@@ -7,7 +7,7 @@ from openpyxl.styles import PatternFill
 import random
 import os
 
-st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
+st.title("График голосования с индикатором 1 голос")
 
 # Функция для определения цвета ячейки
 def get_cell_color(workbook, sheet_name, row, col):
@@ -65,7 +65,7 @@ if uploaded_file is not None:
         sheet_name = wb.sheetnames[0]  # Берем первый лист
         
         # Выбор нескольких характеристик
-        params = st.multiselect("Выберите характеристики", df.index.tolist())
+        params = st.multiselect("Выберите рассказы", df.index.tolist())
         
         if params:  # Если выбраны хотя бы одна характеристика
             # Построение графика
@@ -103,7 +103,7 @@ if uploaded_file is not None:
             # Настройка меток осей
             ax.set_xlabel("Время")
             ax.set_ylabel("Значение")
-            ax.set_title("Графики выбранных характеристик")
+            ax.set_title("Графики выбранных рассказов")
             
             # Ротация меток на оси X и настройка интервала
             plt.xticks(rotation=45, ha="right")
@@ -116,7 +116,7 @@ if uploaded_file is not None:
                 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
             
             # Помещаем легенду под графиком
-            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.5), ncol=3, fontsize='small')
+            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=3, fontsize='small')
             
             # Добавляем сетку
             ax.grid(True, linestyle='--', alpha=0.7)
@@ -124,6 +124,6 @@ if uploaded_file is not None:
             # Отображение графика
             st.pyplot(fig)
         else:
-            st.write("Пожалуйста, выберите хотя бы одну характеристику.")
+            st.write("Пожалуйста, выберите хотя бы один рассказ.")
     except Exception as e:
         st.error(f"Ошибка: {str(e)}")
