@@ -8,7 +8,7 @@ import random
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функция для определения цвета ячейки с улучшенной обработкой StyleProxy
+# Функция для определения цвета ячейки с прямым доступом к атрибутам
 def get_cell_color(workbook, sheet_name, row, col):
     """Извлекает цвет заливки ячейки из Excel-файла с учётом StyleProxy и формата ARGB."""
     try:
@@ -18,14 +18,15 @@ def get_cell_color(workbook, sheet_name, row, col):
         
         st.write(f"Row: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
         
-        # Проверяем, является ли fill прокси-объектом, и извлекаем PatternFill
+        # Пытаемся получить доступ к внутреннему объекту fill
         if hasattr(fill, 'fill'):
             actual_fill = fill.fill
             st.write(f"Extracted fill from proxy: {actual_fill}")
         else:
             actual_fill = fill
         
-        if isinstance(actual_fill, PatternFill) and actual_fill.fill_type == 'solid':
+        # Прямой доступ к rgb, даже если это прокси
+        if hasattr(actual_fill, 'fgColor') and hasattr(actual_fill.fgColor, 'rgb'):
             rgb = actual_fill.fgColor.rgb
             if rgb:
                 st.write(f"Raw RGB value: {rgb}")
@@ -40,9 +41,9 @@ def get_cell_color(workbook, sheet_name, row, col):
                     st.write("Detected red color (HEX FF0000 or FF0000FF)")
                     return 'red'
             else:
-                st.write("No RGB color found in fill.")
+                st.write("No RGB color found in fgColor.")
         else:
-            st.write(f"Fill is not PatternFill or not solid: {type(actual_fill)}, {actual_fill.fill_type if hasattr(actual_fill, 'fill_type') else 'N/A'}")
+            st.write(f"Cannot access fgColor or rgb in fill: {type(actual_fill)}")
         return None  # Возвращаем None, если цвет не красный
     except Exception as e:
         st.error(f"Ошибка при чтении цвета ячейки: {str(e)}")
