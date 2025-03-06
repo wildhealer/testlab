@@ -8,9 +8,9 @@ import random
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функция для определения цвета ячейки с точной обработкой ARGB
+# Функция для определения цвета ячейки с учётом StyleProxy
 def get_cell_color(workbook, sheet_name, row, col):
-    """Извлекает цвет заливки ячейки из Excel-файла с учётом формата ARGB."""
+    """Извлекает цвет заливки ячейки из Excel-файла с учётом формата ARGB и StyleProxy."""
     try:
         worksheet = workbook[sheet_name]
         cell = worksheet.cell(row=row, column=col)
@@ -18,31 +18,33 @@ def get_cell_color(workbook, sheet_name, row, col):
         
         st.write(f"Row: {row}, Col: {col}, Fill type: {type(fill)}, Fill: {fill}")
         
-       # if isinstance(fill, PatternFill) and fill.fill_type == 'solid':
-        if isinstance(fill, openpyxl.styles.fills.PatternFill):    
-            rgb = fill.fgColor.rgb
+        # Проверяем, является ли fill прокси-объектом, и извлекаем PatternFill
+        if hasattr(fill, 'fill') and isinstance(fill.fill, PatternFill):
+            actual_fill = fill.fill
+        elif isinstance(fill, PatternFill):
+            actual_fill = fill
+        else:
+            st.write("Fill is not PatternFill or not accessible via proxy.")
+            return None
+        
+        if actual_fill.fill_type == 'solid':
+            rgb = actual_fill.fgColor.rgb
             if rgb:
-                # Проверяем формат ARGB (например, 00FF0000) или HEX
                 st.write(f"Raw RGB value: {rgb}")
                 # Преобразуем в нижний регистр для надёжности
                 rgb_lower = rgb.lower()
                 
-                # Проверяем, красный ли цвет (00FF0000 или FF0000)
-                if rgb_lower == 'ff993300':  # ARGB формат
-                    st.write("Detected red color (ARGB 00FF0000)")
+                # Проверяем, красный ли цвет (FFFF0000, 00FF0000, FF0000)
+                if rgb_lower in ['ffff0000', '00ff0000']:  # ARGB форматы красного
+                    st.write("Detected red color (ARGB FFFF0000 or 00FF0000)")
                     return 'red'
-                # Проверяем HEX без префикса (FF0000)
-                elif rgb_lower == 'ff0000':  # HEX без префикса FF
-                    st.write("Detected red color (HEX FF0000)")
-                    return 'red'
-                # Проверяем полный HEX с префиксом (FF0000FF)
-                elif rgb_lower == 'ff0000ff':  # Полный HEX
-                    st.write("Detected red color (HEX FF0000FF)")
+                elif rgb_lower in ['ff0000', 'ff0000ff']:  # HEX форматы красного
+                    st.write("Detected red color (HEX FF0000 or FF0000FF)")
                     return 'red'
             else:
                 st.write("No RGB color found in fill.")
         else:
-            st.write("Fill is not PatternFill or not solid.")
+            st.write(f"Fill type is not solid: {actual_fill.fill_type}")
         return None  # Возвращаем None, если цвет не красный
     except Exception as e:
         st.error(f"Ошибка при чтении цвета ячейки: {str(e)}")
