@@ -5,6 +5,7 @@ from matplotlib.ticker import AutoMinorLocator
 import openpyxl
 from openpyxl.styles import PatternFill
 import random
+import os
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
@@ -38,18 +39,29 @@ def get_cell_color(workbook, sheet_name, row, col):
     except Exception:
         return None
 
-# Загрузка файла
-uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
+# Проверка наличия файла output_highlighted.xlsx
+default_file = "output_highlighted.xlsx"
+if os.path.exists(default_file):
+    uploaded_file = open(default_file, 'rb')
+    st.write(f"Использован файл по умолчанию: {default_file}")
+else:
+    uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
         # Читаем данные с помощью pandas
-        df = pd.read_excel(uploaded_file)
+        if isinstance(uploaded_file, str):  # Если файл загружен из пути
+            df = pd.read_excel(uploaded_file)
+        else:  # Если файл загружен через uploader
+            df = pd.read_excel(uploaded_file)
         # Устанавливаем первый столбец как индекс
         df.set_index(df.columns[0], inplace=True)
         
         # Открываем файл с помощью openpyxl для чтения цветов
-        wb = openpyxl.load_workbook(uploaded_file)
+        if isinstance(uploaded_file, str):
+            wb = openpyxl.load_workbook(uploaded_file)
+        else:
+            wb = openpyxl.load_workbook(uploaded_file)
         sheet_name = wb.sheetnames[0]  # Берем первый лист
         
         # Выбор нескольких характеристик
@@ -103,8 +115,10 @@ if uploaded_file is not None:
             if len(df.columns) > 10:
                 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
             
-            # Добавляем легенду и сетку
-            ax.legend()
+            # Помещаем легенду под графиком
+            ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.2), ncol=3, fontsize='small')
+            
+            # Добавляем сетку
             ax.grid(True, linestyle='--', alpha=0.7)
             
             # Отображение графика
