@@ -142,7 +142,7 @@ if uploaded_file is not None:
                         
                         # Чередуем цвета: нежно-жёлтый и белый
                         fill_color = '#FFFFE0' if i % 2 == 0 else 'white'  # Нежно-жёлтый (#FFFFE0) и белый
-                        ax.axvspan(start_idx, end_idx, facecolor=fill_color, alpha=0.3, zorder=0)
+                        ax.axvspan(start_idx, end_idx, facecolor=fill_color, alpha=0.7, zorder=0)
             except ValueError:
                 # Если x_data не в формате даты/времени, просто чередуем полосы по индексам
                 for i in range(len(x_data)):
