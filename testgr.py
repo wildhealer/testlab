@@ -64,13 +64,13 @@ if uploaded_file is not None or os.path.exists(default_file):
         
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
+
+        # Выбор типа графика
+        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый"]) 
         
         # Выбор нескольких характеристик
         params = st.multiselect("Выберите характеристики", df.index.tolist())
-        
-        # Выбор типа графика
-        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый"])
-        
+           
         if params:
             # Создаём объект Plotly
             fig = go.Figure()
