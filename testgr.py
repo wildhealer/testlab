@@ -68,50 +68,63 @@ if uploaded_file is not None or os.path.exists(default_file):
         # Выбор нескольких характеристик
         params = st.multiselect("Выберите характеристики", df.index.tolist())
         
+        # Выбор типа графика
+        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый"])
+        
         if params:
             # Создаём объект Plotly
             fig = go.Figure()
             
-            # Список цветов для линий
+            # Список цветов для линий/столбцов
             line_colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'yellow', 'black']
             if len(params) > len(line_colors):
                 random_colors = [f'#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}' 
                                for _ in range(len(params) - len(line_colors))]
                 line_colors.extend(random_colors)
             
-            # Добавляем линии и точки для каждой характеристики
+            # Добавляем данные для каждой характеристики
             for i, param in enumerate(params):
                 color = line_colors[i % len(line_colors)]
                 x_data = df.columns
                 y_data = df.loc[param]
                 
-                # Добавляем линию
-                fig.add_trace(go.Scatter(
-                    x=x_data,
-                    y=y_data,
-                    mode='lines',
-                    name=param,
-                    line=dict(color=color, width=2)
-                ))
-                
-                # Извлекаем цвета для каждой ячейки
-                point_colors = []
-                for col in range(2, len(df.columns) + 2):
-                    row = df.index.get_loc(param) + 2
-                    point_color = get_cell_color(wb, sheet_name, row, col)
-                    point_colors.append(point_color)
-                
-                # Добавляем точки для красных ячеек
-                red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
-                red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
-                if red_x:
+                if chart_type == "Линейный":
+                    # Линейный график
                     fig.add_trace(go.Scatter(
-                        x=red_x,
-                        y=red_y,
-                        mode='markers',
-                        name=f'{param} (red points)',
-                        marker=dict(color='red', size=10, line=dict(color='black', width=1)),
-                        showlegend=False
+                        x=x_data,
+                        y=y_data,
+                        mode='lines',
+                        name=param,
+                        line=dict(color=color, width=2)
+                    ))
+                    
+                    # Извлекаем цвета для каждой ячейки (только для линейного графика)
+                    point_colors = []
+                    for col in range(2, len(df.columns) + 2):
+                        row = df.index.get_loc(param) + 2
+                        point_color = get_cell_color(wb, sheet_name, row, col)
+                        point_colors.append(point_color)
+                    
+                    # Добавляем точки для красных ячеек
+                    red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
+                    red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
+                    if red_x:
+                        fig.add_trace(go.Scatter(
+                            x=red_x,
+                            y=red_y,
+                            mode='markers',
+                            name=f'{param} (red points)',
+                            marker=dict(color='red', size=10, line=dict(color='black', width=1)),
+                            showlegend=False
+                        ))
+                else:
+                    # Столбчатый график
+                    fig.add_trace(go.Bar(
+                        x=x_data,
+                        y=y_data,
+                        name=param,
+                        marker_color=color,
+                        width=0.8  # Ширина столбцов
                     ))
             
             # Настройка осей и оформления
