@@ -46,7 +46,7 @@ def get_download_link(file_path, file_name):
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
 if os.path.exists(default_file):
-    st.markdown(f"Файл по умолчанию доступен: {get_download_link(default_file, default_file)}", unsafe_allow_html=True)
+    st.markdown(f"Файл с данными доступен: {get_download_link(default_file, default_file)}", unsafe_allow_html=True)
 else:
     uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
 
@@ -69,7 +69,7 @@ if uploaded_file is not None or os.path.exists(default_file):
         chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый"]) 
         
         # Выбор нескольких характеристик
-        params = st.multiselect("Выберите характеристики", df.index.tolist())
+        params = st.multiselect("Выберите рассказы", df.index.tolist())
            
         if params:
             # Создаём объект Plotly
@@ -203,6 +203,6 @@ if uploaded_file is not None or os.path.exists(default_file):
             st.plotly_chart(fig, use_container_width=True)
             
         else:
-            st.write("Пожалуйста, выберите хотя бы одну характеристику.")
+            st.write("Пожалуйста, выберите хотя бы один рассказ.")
     except Exception as e:
         st.error(f"Ошибка: {str(e)}")
