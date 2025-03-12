@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go  # Используем Plotly вместо Matplotlib
+import plotly.graph_objects as go
 import openpyxl
 from openpyxl.styles import PatternFill
 import random
 import os
 from datetime import datetime
-import base64  # Для создания ссылки на скачивание
+import base64
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
@@ -72,7 +72,7 @@ if uploaded_file is not None or os.path.exists(default_file):
             # Создаём объект Plotly
             fig = go.Figure()
             
-            # Список цветов для линий (совместим с Plotly)
+            # Список цветов для линий
             line_colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'yellow', 'black']
             if len(params) > len(line_colors):
                 random_colors = [f'#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}' 
@@ -104,14 +104,14 @@ if uploaded_file is not None or os.path.exists(default_file):
                 # Добавляем точки для красных ячеек
                 red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
                 red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
-                if red_x:  # Если есть красные точки
+                if red_x:
                     fig.add_trace(go.Scatter(
                         x=red_x,
                         y=red_y,
                         mode='markers',
                         name=f'{param} (red points)',
                         marker=dict(color='red', size=10, line=dict(color='black', width=1)),
-                        showlegend=False  # Не показываем в легенде для точек
+                        showlegend=False
                     ))
             
             # Настройка осей и оформления
@@ -122,7 +122,7 @@ if uploaded_file is not None or os.path.exists(default_file):
                 xaxis=dict(
                     tickangle=45,
                     tickmode='auto',
-                    nticks=10 if len(df.columns) > 10 else None  # Ограничение числа меток
+                    nticks=10 if len(df.columns) > 10 else None
                 ),
                 legend=dict(
                     yanchor="bottom",
@@ -133,14 +133,14 @@ if uploaded_file is not None or os.path.exists(default_file):
                     font=dict(size=10)
                 ),
                 height=600,
-                margin=dict(l=50, r=50, t=50, b=100),  # Уменьшаем поля для компактности
+                margin=dict(l=50, r=50, t=50, b=100),
                 showlegend=True
             )
             
-            # Добавляем сетку
+            # Добавляем основную сетку
             fig.update_layout(
-                xaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', minor_grids=True),
-                yaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)')
+                xaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', griddash='dash'),
+                yaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', griddash='dash')
             )
             
             # Добавляем вертикальные полосы для дней
@@ -161,7 +161,7 @@ if uploaded_file is not None or os.path.exists(default_file):
                             x1=end_idx,
                             y0=0,
                             y1=1,
-                            yref="paper",  # Относительно всей высоты графика
+                            yref="paper",
                             fillcolor=fill_color,
                             opacity=0.9,
                             layer="below",
