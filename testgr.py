@@ -42,13 +42,15 @@ def get_download_link(file_path, file_name):
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">Скачать {file_name}</a>'
     return href
 
-# Функция для создания HTML-превью таблицы с цветами
+# Функция для создания HTML-превью таблицы с цветами и прокруткой
 def create_html_table(df, workbook, sheet_name):
-    """Создаёт HTML-таблицу с учётом цвета ячеек."""
-    html = "<table style='border-collapse: collapse; width: 100%;'>"
+    """Создаёт HTML-таблицу с учётом цвета ячеек и горизонтальной прокруткой."""
+    # Оборачиваем таблицу в div с горизонтальной прокруткой
+    html = "<div style='overflow-x: auto; width: 100%;'>"
+    html += "<table style='border-collapse: collapse; width: 100%; min-width: max-content;'>"
     # Заголовок
     html += "<tr style='background-color: #f2f2f2;'>"
-    html += "<th style='border: 1px solid #ddd; padding: 8px;'></th>"  # Пустая ячейка для индекса
+    html += "<th style='border: 1px solid #ddd; padding: 8px; position: sticky; left: 0; background-color: #f2f2f2; z-index: 1;'></th>"  # Фиксированный индекс
     for col in df.columns:
         html += f"<th style='border: 1px solid #ddd; padding: 8px;'>{col}</th>"
     html += "</tr>"
@@ -56,15 +58,16 @@ def create_html_table(df, workbook, sheet_name):
     # Данные
     for i, (index, row) in enumerate(df.iterrows()):
         html += "<tr>"
-        html += f"<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>{index}</td>"
+        html += f"<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold; position: sticky; left: 0; background-color: #ffffff; z-index: 1;'>{index}</td>"
         for j, value in enumerate(row):
-            color = get_cell_color(workbook, sheet_name, i + 2, j + 2)  # +2 из-за смещения (заголовок и индекс)
+            color = get_cell_color(workbook, sheet_name, i + 2, j + 2)
             style = "border: 1px solid #ddd; padding: 8px;"
             if color == 'red':
-                style += "background-color: #ffcccc;"  # Светло-красный фон
+                style += "background-color: #ffcccc;"
             html += f"<td style='{style}'>{value}</td>"
         html += "</tr>"
     html += "</table>"
+    html += "</div>"
     return html
 
 # Проверка наличия файла output_highlighted.xlsx и создание ссылки для скачивания
@@ -114,7 +117,6 @@ if uploaded_file is not None or os.path.exists(default_file):
                 y_data = df.loc[param]
                 
                 if chart_type == "Линейный":
-                    # Линейный график
                     fig.add_trace(go.Scatter(
                         x=x_data,
                         y=y_data,
@@ -123,14 +125,12 @@ if uploaded_file is not None or os.path.exists(default_file):
                         line=dict(color=color, width=2)
                     ))
                     
-                    # Извлекаем цвета для каждой ячейки (только для линейного и точечного)
                     point_colors = []
                     for col in range(2, len(df.columns) + 2):
                         row = df.index.get_loc(param) + 2
                         point_color = get_cell_color(wb, sheet_name, row, col)
                         point_colors.append(point_color)
                     
-                    # Добавляем точки для красных ячеек
                     red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
                     red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
                     if red_x:
@@ -144,7 +144,6 @@ if uploaded_file is not None or os.path.exists(default_file):
                         ))
                 
                 elif chart_type == "Столбчатый":
-                    # Столбчатый график
                     fig.add_trace(go.Bar(
                         x=x_data,
                         y=y_data,
@@ -154,7 +153,6 @@ if uploaded_file is not None or os.path.exists(default_file):
                     ))
                 
                 elif chart_type == "Точечный":
-                    # Точечный график
                     fig.add_trace(go.Scatter(
                         x=x_data,
                         y=y_data,
@@ -163,7 +161,6 @@ if uploaded_file is not None or os.path.exists(default_file):
                         marker=dict(color=color, size=8, line=dict(color='black', width=1))
                     ))
                     
-                    # Красные точки
                     point_colors = []
                     for col in range(2, len(df.columns) + 2):
                         row = df.index.get_loc(param) + 2
@@ -183,15 +180,14 @@ if uploaded_file is not None or os.path.exists(default_file):
                         ))
                 
                 elif chart_type == "Площадной":
-                    # Площадной график
                     fig.add_trace(go.Scatter(
                         x=x_data,
                         y=y_data,
                         mode='lines',
                         name=param,
-                        fill='tozeroy',  # Заполнение до оси Y=0
+                        fill='tozeroy',
                         line=dict(color=color, width=2),
-                        fillcolor=f'rgba{tuple(int(color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)) + (0.3,)}'  # Полупрозрачная заливка
+                        fillcolor=f'rgba{tuple(int(color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)) + (0.3,)}'
                     ))
             
             # Настройка осей и оформления
