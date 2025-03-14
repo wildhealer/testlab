@@ -8,6 +8,8 @@ import os
 from datetime import datetime
 import base64
 
+st.set_page_config(layout="wide")
+
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
 # Функция для определения цвета ячейки
