@@ -116,6 +116,11 @@ if uploaded_file is not None or os.path.exists(default_file):
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
         
+        # Превью Excel-файла (отображается сразу после загрузки)
+        st.subheader("Превью Excel-файла")
+        html_table = create_html_table(df, wb, sheet_name)
+        st.markdown(html_table, unsafe_allow_html=True)
+        
         # Выбор нескольких характеристик
         params = st.multiselect("Выберите характеристики", df.index.tolist())
         
@@ -203,7 +208,6 @@ if uploaded_file is not None or os.path.exists(default_file):
                         ))
                 
                 elif chart_type == "Площадной":
-                    # Преобразуем HEX в RGB и добавляем прозрачность
                     r = int(color.lstrip('#')[0:2], 16)
                     g = int(color.lstrip('#')[2:4], 16)
                     b = int(color.lstrip('#')[4:6], 16)
@@ -293,11 +297,6 @@ if uploaded_file is not None or os.path.exists(default_file):
             
             # Отображение графика в Streamlit
             st.plotly_chart(fig, use_container_width=True)
-            
-            # Превью Excel-файла
-            st.subheader("Превью Excel-файла")
-            html_table = create_html_table(df, wb, sheet_name)
-            st.markdown(html_table, unsafe_allow_html=True)
             
         else:
             st.write("Пожалуйста, выберите хотя бы одну характеристику.")
