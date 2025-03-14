@@ -48,6 +48,11 @@ def create_html_table(df, workbook, sheet_name):
     """Создаёт HTML-таблицу с учётом цвета ячеек, горизонтальной прокруткой и автопрокруткой вправо."""
     html = """
     <style>
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+            display: block;  /* Убедимся, что контейнер занимает всю ширину */
+        }
         .table-container::-webkit-scrollbar {
             height: 12px;  /* Увеличиваем высоту ползунка */
         }
@@ -62,9 +67,14 @@ def create_html_table(df, workbook, sheet_name):
             scrollbar-width: thick;  /* Для Firefox */
             scrollbar-color: #888 #f1f1f1;
         }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: max-content;  /* Таблица не сжимается меньше своего содержимого */
+        }
     </style>
-    <div class="table-container" style="overflow-x: auto; width: 100%;" id="tableContainer">
-        <table style="border-collapse: collapse; width: 100%; min-width: max-content;">
+    <div class="table-container" id="tableContainer">
+        <table>
     """
     # Заголовок
     html += "<tr style='background-color: #f2f2f2;'>"
@@ -125,7 +135,7 @@ if uploaded_file is not None or os.path.exists(default_file):
         # Выбор нескольких характеристик
         params = st.multiselect("Выберите характеристики", df.index.tolist())
         
-        # Выбор типа графика (без "Площадного")
+        # Выбор типа графика
         chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный"])
         
         if params:
@@ -286,7 +296,7 @@ if uploaded_file is not None or os.path.exists(default_file):
             # Превью Excel-файла
             st.subheader("Превью Excel-файла")
             html_table = create_html_table(df, wb, sheet_name)
-            html(html_table)  # Без высоты и вертикальной прокрутки
+            html(html_table)  # Без фиксированной высоты, вся таблица видна
             
         else:
             st.write("Пожалуйста, выберите хотя бы одну характеристику.")
