@@ -7,6 +7,7 @@ import random
 import os
 from datetime import datetime
 import base64
+from streamlit.components.v1 import html  # Для корректной работы JavaScript
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
@@ -57,6 +58,10 @@ def create_html_table(df, workbook, sheet_name):
         .table-container::-webkit-scrollbar-thumb:hover {
             background-color: #555;  /* Цвет при наведении */
         }
+        .table-container {
+            scrollbar-width: thick;  /* Для Firefox */
+            scrollbar-color: #888 #f1f1f1;
+        }
     </style>
     <div class="table-container" style="overflow-x: auto; width: 100%;" id="tableContainer">
         <table style="border-collapse: collapse; width: 100%; min-width: max-content;">
@@ -84,10 +89,12 @@ def create_html_table(df, workbook, sheet_name):
     # JavaScript для прокрутки вправо
     html += """
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        window.onload = function() {
             var container = document.getElementById("tableContainer");
-            container.scrollLeft = container.scrollWidth;
-        });
+            if (container) {
+                container.scrollLeft = container.scrollWidth - container.clientWidth;
+            }
+        };
     </script>
     """
     return html
@@ -290,7 +297,7 @@ if uploaded_file is not None or os.path.exists(default_file):
             # Превью Excel-файла
             st.subheader("Превью Excel-файла")
             html_table = create_html_table(df, wb, sheet_name)
-            st.markdown(html_table, unsafe_allow_html=True)
+            html(html_table, height=300, scrolling=True)  # Используем st.components.v1.html
             
         else:
             st.write("Пожалуйста, выберите хотя бы одну характеристику.")
