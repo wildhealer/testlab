@@ -42,11 +42,36 @@ def get_download_link(file_path, file_name):
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">Скачать {file_name}</a>'
     return href
 
+# Функция для создания HTML-превью таблицы с цветами
+def create_html_table(df, workbook, sheet_name):
+    """Создаёт HTML-таблицу с учётом цвета ячеек."""
+    html = "<table style='border-collapse: collapse; width: 100%;'>"
+    # Заголовок
+    html += "<tr style='background-color: #f2f2f2;'>"
+    html += "<th style='border: 1px solid #ddd; padding: 8px;'></th>"  # Пустая ячейка для индекса
+    for col in df.columns:
+        html += f"<th style='border: 1px solid #ddd; padding: 8px;'>{col}</th>"
+    html += "</tr>"
+    
+    # Данные
+    for i, (index, row) in enumerate(df.iterrows()):
+        html += "<tr>"
+        html += f"<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>{index}</td>"
+        for j, value in enumerate(row):
+            color = get_cell_color(workbook, sheet_name, i + 2, j + 2)  # +2 из-за смещения (заголовок и индекс)
+            style = "border: 1px solid #ddd; padding: 8px;"
+            if color == 'red':
+                style += "background-color: #ffcccc;"  # Светло-красный фон
+            html += f"<td style='{style}'>{value}</td>"
+        html += "</tr>"
+    html += "</table>"
+    return html
+
 # Проверка наличия файла output_highlighted.xlsx и создание ссылки для скачивания
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
 if os.path.exists(default_file):
-    st.markdown(f"Файл с данными доступен: {get_download_link(default_file, default_file)}", unsafe_allow_html=True)
+    st.markdown(f"Файл по умолчанию доступен: {get_download_link(default_file, default_file)}", unsafe_allow_html=True)
 else:
     uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
 
@@ -64,13 +89,13 @@ if uploaded_file is not None or os.path.exists(default_file):
         
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
-
-        # Выбор типа графика
-        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый"]) 
         
         # Выбор нескольких характеристик
-        params = st.multiselect("Выберите рассказы", df.index.tolist())
-           
+        params = st.multiselect("Выберите характеристики", df.index.tolist())
+        
+        # Выбор типа графика
+        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный", "Площадной"])
+        
         if params:
             # Создаём объект Plotly
             fig = go.Figure()
@@ -98,7 +123,7 @@ if uploaded_file is not None or os.path.exists(default_file):
                         line=dict(color=color, width=2)
                     ))
                     
-                    # Извлекаем цвета для каждой ячейки (только для линейного графика)
+                    # Извлекаем цвета для каждой ячейки (только для линейного и точечного)
                     point_colors = []
                     for col in range(2, len(df.columns) + 2):
                         row = df.index.get_loc(param) + 2
@@ -117,14 +142,56 @@ if uploaded_file is not None or os.path.exists(default_file):
                             marker=dict(color='red', size=10, line=dict(color='black', width=1)),
                             showlegend=False
                         ))
-                else:
+                
+                elif chart_type == "Столбчатый":
                     # Столбчатый график
                     fig.add_trace(go.Bar(
                         x=x_data,
                         y=y_data,
                         name=param,
                         marker_color=color,
-                        width=0.8  # Ширина столбцов
+                        width=0.8
+                    ))
+                
+                elif chart_type == "Точечный":
+                    # Точечный график
+                    fig.add_trace(go.Scatter(
+                        x=x_data,
+                        y=y_data,
+                        mode='markers',
+                        name=param,
+                        marker=dict(color=color, size=8, line=dict(color='black', width=1))
+                    ))
+                    
+                    # Красные точки
+                    point_colors = []
+                    for col in range(2, len(df.columns) + 2):
+                        row = df.index.get_loc(param) + 2
+                        point_color = get_cell_color(wb, sheet_name, row, col)
+                        point_colors.append(point_color)
+                    
+                    red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
+                    red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
+                    if red_x:
+                        fig.add_trace(go.Scatter(
+                            x=red_x,
+                            y=red_y,
+                            mode='markers',
+                            name=f'{param} (red points)',
+                            marker=dict(color='red', size=10, line=dict(color='black', width=1)),
+                            showlegend=False
+                        ))
+                
+                elif chart_type == "Площадной":
+                    # Площадной график
+                    fig.add_trace(go.Scatter(
+                        x=x_data,
+                        y=y_data,
+                        mode='lines',
+                        name=param,
+                        fill='tozeroy',  # Заполнение до оси Y=0
+                        line=dict(color=color, width=2),
+                        fillcolor=f'rgba{tuple(int(color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)) + (0.3,)}'  # Полупрозрачная заливка
                     ))
             
             # Настройка осей и оформления
@@ -202,7 +269,12 @@ if uploaded_file is not None or os.path.exists(default_file):
             # Отображение графика в Streamlit
             st.plotly_chart(fig, use_container_width=True)
             
+            # Превью Excel-файла
+            st.subheader("Превью Excel-файла")
+            html_table = create_html_table(df, wb, sheet_name)
+            st.markdown(html_table, unsafe_allow_html=True)
+            
         else:
-            st.write("Пожалуйста, выберите хотя бы один рассказ.")
+            st.write("Пожалуйста, выберите хотя бы одну характеристику.")
     except Exception as e:
         st.error(f"Ошибка: {str(e)}")
