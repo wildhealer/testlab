@@ -42,15 +42,28 @@ def get_download_link(file_path, file_name):
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">Скачать {file_name}</a>'
     return href
 
-# Функция для создания HTML-превью таблицы с цветами и прокруткой
+# Функция для создания HTML-превью таблицы с цветами, широким ползунком и автопрокруткой
 def create_html_table(df, workbook, sheet_name):
-    """Создаёт HTML-таблицу с учётом цвета ячеек и горизонтальной прокруткой."""
-    # Оборачиваем таблицу в div с горизонтальной прокруткой
-    html = "<div style='overflow-x: auto; width: 100%;'>"
-    html += "<table style='border-collapse: collapse; width: 100%; min-width: max-content;'>"
+    """Создаёт HTML-таблицу с учётом цвета ячеек, горизонтальной прокруткой и автопрокруткой вправо."""
+    html = """
+    <style>
+        .table-container::-webkit-scrollbar {
+            height: 12px;  /* Увеличиваем высоту ползунка */
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #888;  /* Цвет ползунка */
+            border-radius: 6px;      /* Закругление краёв */
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background-color: #555;  /* Цвет при наведении */
+        }
+    </style>
+    <div class="table-container" style="overflow-x: auto; width: 100%;" id="tableContainer">
+        <table style="border-collapse: collapse; width: 100%; min-width: max-content;">
+    """
     # Заголовок
     html += "<tr style='background-color: #f2f2f2;'>"
-    html += "<th style='border: 1px solid #ddd; padding: 8px; position: sticky; left: 0; background-color: #f2f2f2; z-index: 1;'></th>"  # Фиксированный индекс
+    html += "<th style='border: 1px solid #ddd; padding: 8px; position: sticky; left: 0; background-color: #f2f2f2; z-index: 1;'></th>"
     for col in df.columns:
         html += f"<th style='border: 1px solid #ddd; padding: 8px;'>{col}</th>"
     html += "</tr>"
@@ -68,6 +81,15 @@ def create_html_table(df, workbook, sheet_name):
         html += "</tr>"
     html += "</table>"
     html += "</div>"
+    # JavaScript для прокрутки вправо
+    html += """
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var container = document.getElementById("tableContainer");
+            container.scrollLeft = container.scrollWidth;
+        });
+    </script>
+    """
     return html
 
 # Проверка наличия файла output_highlighted.xlsx и создание ссылки для скачивания
