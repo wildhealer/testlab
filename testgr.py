@@ -8,23 +8,21 @@ import os
 from datetime import datetime
 import base64
 
+# Устанавливаем широкий макет
 st.set_page_config(layout="wide")
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функция для определения цвета ячейки
+# Функции без изменений
 def get_cell_color(workbook, sheet_name, row, col):
-    """Извлекает цвет заливки ячейки из Excel-файла с учётом StyleProxy и формата ARGB."""
     try:
         worksheet = workbook[sheet_name]
         cell = worksheet.cell(row=row, column=col)
         fill = cell.fill
-        
         if hasattr(fill, 'fill'):
             actual_fill = fill.fill
         else:
             actual_fill = fill
-        
         if hasattr(actual_fill, 'fgColor') and hasattr(actual_fill.fgColor, 'rgb'):
             rgb = actual_fill.fgColor.rgb
             if rgb:
@@ -37,18 +35,14 @@ def get_cell_color(workbook, sheet_name, row, col):
     except Exception:
         return None
 
-# Функция для создания ссылки на скачивание файла
 def get_download_link(file_path, file_name):
-    """Создаёт ссылку для скачивания файла."""
     with open(file_path, "rb") as f:
         bytes_data = f.read()
     b64 = base64.b64encode(bytes_data).decode()
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">Скачать {file_name}</a>'
     return href
 
-# Функция для создания HTML-превью таблицы с цветами, широким ползунком и автопрокруткой
 def create_html_table(df, workbook, sheet_name):
-    """Создаёт HTML-таблицу с учётом цвета ячеек (красный и жёлтый), горизонтальной прокруткой и автопрокруткой вправо."""
     html = """
     <style>
         .table-container::-webkit-scrollbar {
@@ -70,7 +64,6 @@ def create_html_table(df, workbook, sheet_name):
     for col in df.columns:
         html += f"<th style='border: 1px solid #ddd; padding: 8px;'>{col}</th>"
     html += "</tr>"
-    
     for i, (index, row) in enumerate(df.iterrows()):
         html += "<tr>"
         html += f"<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold; position: sticky; left: 0; background-color: #ffffff; z-index: 1;'>{index}</td>"
@@ -95,7 +88,7 @@ def create_html_table(df, workbook, sheet_name):
     """
     return html
 
-# Проверка наличия файла output_highlighted.xlsx и создание ссылки для скачивания
+# Загрузка файла
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
 if os.path.exists(default_file):
@@ -103,10 +96,8 @@ if os.path.exists(default_file):
 else:
     uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
 
-# Если файл загружен через uploader или существует файл по умолчанию
 if uploaded_file is not None or os.path.exists(default_file):
     try:
-        # Читаем данные с помощью pandas
         if uploaded_file is None and os.path.exists(default_file):
             df = pd.read_excel(default_file)
             wb = openpyxl.load_workbook(default_file)
@@ -118,143 +109,130 @@ if uploaded_file is not None or os.path.exists(default_file):
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
         
-        # Превью Excel-файла (отображается сразу после загрузки)
+        # Превью Excel-файла
         st.subheader("Превью Excel-файла")
         html_table = create_html_table(df, wb, sheet_name)
         st.markdown(html_table, unsafe_allow_html=True)
         
-        # Выбор нескольких характеристик
-        params = st.multiselect("Выберите характеристики", df.index.tolist())
+        # Добавляем графический файл voting_heatmap.png
+        st.subheader("Коррелятор")
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)  # Отступ сверху
         
-        # Выбор типа графика
+        # Кодируем изображение в base64 для встраивания
+        image_path = "voting_heatmap.png"
+        if os.path.exists(image_path):
+            with open(image_path, "rb") as image_file:
+                encoded_image = base64.b64encode(image_file.read()).decode()
+            
+            # HTML для изображения с масштабированием и полноэкранным режимом
+            image_html = f"""
+            <style>
+                .image-container {{
+                    width: 100%;
+                    text-align: center;
+                }}
+                .image-container img {{
+                    max-width: 100%;
+                    height: auto;
+                    cursor: pointer;
+                }}
+                .fullscreen {{
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    z-index: 9999;
+                    justify-content: center;
+                    align-items: center;
+                }}
+                .fullscreen img {{
+                    max-width: 90%;
+                    max-height: 90%;
+                }}
+            </style>
+            <div class="image-container">
+                <img src="data:image/png;base64,{encoded_image}" onclick="openFullscreen(this)">
+            </div>
+            <div class="fullscreen" id="fullscreen">
+                <img src="data:image/png;base64,{encoded_image}" onclick="closeFullscreen()">
+            </div>
+            <script>
+                function openFullscreen(element) {{
+                    document.getElementById("fullscreen").style.display = "flex";
+                }}
+                function closeFullscreen() {{
+                    document.getElementById("fullscreen").style.display = "none";
+                }}
+            </script>
+            """
+            st.markdown(image_html, unsafe_allow_html=True)
+        else:
+            st.warning("Файл voting_heatmap.png не найден в директории скрипта.")
+        
+        # Выбор характеристик и типа графика
+        params = st.multiselect("Выберите характеристики", df.index.tolist())
         chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный", "Площадной"])
         
         if params:
-            # Создаём объект Plotly
             fig = go.Figure()
-            
-            # Список цветов в HEX-формате
-            line_colors = ['#0000FF', '#FF0000', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00', '#000000']  # blue, red, green, cyan, magenta, yellow, black
+            line_colors = ['#0000FF', '#FF0000', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00', '#000000']
             if len(params) > len(line_colors):
                 random_colors = [f'#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}' 
                                for _ in range(len(params) - len(line_colors))]
                 line_colors.extend(random_colors)
             
-            # Добавляем данные для каждой характеристики
             for i, param in enumerate(params):
                 color = line_colors[i % len(line_colors)]
                 x_data = df.columns
                 y_data = df.loc[param]
                 
                 if chart_type == "Линейный":
-                    fig.add_trace(go.Scatter(
-                        x=x_data,
-                        y=y_data,
-                        mode='lines',
-                        name=param,
-                        line=dict(color=color, width=2)
-                    ))
-                    
-                    point_colors = []
-                    for col in range(2, len(df.columns) + 2):
-                        row = df.index.get_loc(param) + 2
-                        point_color = get_cell_color(wb, sheet_name, row, col)
-                        point_colors.append(point_color)
-                    
+                    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode='lines', name=param, line=dict(color=color, width=2)))
+                    point_colors = [get_cell_color(wb, sheet_name, df.index.get_loc(param) + 2, col) for col in range(2, len(df.columns) + 2)]
                     red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
                     red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
                     if red_x:
-                        fig.add_trace(go.Scatter(
-                            x=red_x,
-                            y=red_y,
-                            mode='markers',
-                            name=f'{param} (red points)',
-                            marker=dict(color='red', size=10, line=dict(color='black', width=1)),
-                            showlegend=False
-                        ))
+                        fig.add_trace(go.Scatter(x=red_x, y=red_y, mode='markers', name=f'{param} (red points)', 
+                                               marker=dict(color='red', size=10, line=dict(color='black', width=1)), showlegend=False))
                 
                 elif chart_type == "Столбчатый":
-                    fig.add_trace(go.Bar(
-                        x=x_data,
-                        y=y_data,
-                        name=param,
-                        marker_color=color,
-                        width=0.8
-                    ))
+                    fig.add_trace(go.Bar(x=x_data, y=y_data, name=param, marker_color=color, width=0.8))
                 
                 elif chart_type == "Точечный":
-                    fig.add_trace(go.Scatter(
-                        x=x_data,
-                        y=y_data,
-                        mode='markers',
-                        name=param,
-                        marker=dict(color=color, size=8, line=dict(color='black', width=1))
-                    ))
-                    
-                    point_colors = []
-                    for col in range(2, len(df.columns) + 2):
-                        row = df.index.get_loc(param) + 2
-                        point_color = get_cell_color(wb, sheet_name, row, col)
-                        point_colors.append(point_color)
-                    
+                    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode='markers', name=param, 
+                                           marker=dict(color=color, size=8, line=dict(color='black', width=1))))
+                    point_colors = [get_cell_color(wb, sheet_name, df.index.get_loc(param) + 2, col) for col in range(2, len(df.columns) + 2)]
                     red_x = [x for x, pc in zip(x_data, point_colors) if pc == 'red']
                     red_y = [y for y, pc in zip(y_data, point_colors) if pc == 'red']
                     if red_x:
-                        fig.add_trace(go.Scatter(
-                            x=red_x,
-                            y=red_y,
-                            mode='markers',
-                            name=f'{param} (red points)',
-                            marker=dict(color='red', size=10, line=dict(color='black', width=1)),
-                            showlegend=False
-                        ))
+                        fig.add_trace(go.Scatter(x=red_x, y=red_y, mode='markers', name=f'{param} (red points)', 
+                                               marker=dict(color='red', size=10, line=dict(color='black', width=1)), showlegend=False))
                 
                 elif chart_type == "Площадной":
                     r = int(color.lstrip('#')[0:2], 16)
                     g = int(color.lstrip('#')[2:4], 16)
                     b = int(color.lstrip('#')[4:6], 16)
                     fillcolor = f'rgba({r}, {g}, {b}, 0.3)'
-                    
-                    fig.add_trace(go.Scatter(
-                        x=x_data,
-                        y=y_data,
-                        mode='lines',
-                        name=param,
-                        fill='tozeroy',
-                        line=dict(color=color, width=2),
-                        fillcolor=fillcolor
-                    ))
+                    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode='lines', name=param, fill='tozeroy', 
+                                           line=dict(color=color, width=2), fillcolor=fillcolor))
             
-            # Настройка осей и оформления
             fig.update_layout(
                 xaxis_title="Время",
                 yaxis_title="Значение",
                 title="Графики выбранных характеристик",
-                xaxis=dict(
-                    tickangle=45,
-                    tickmode='auto',
-                    nticks=10 if len(df.columns) > 10 else None
-                ),
-                legend=dict(
-                    yanchor="bottom",
-                    y=-0.4,
-                    xanchor="center",
-                    x=0.5,
-                    orientation="h",
-                    font=dict(size=10)
-                ),
+                xaxis=dict(tickangle=45, tickmode='auto', nticks=10 if len(df.columns) > 10 else None),
+                legend=dict(yanchor="bottom", y=-0.4, xanchor="center", x=0.5, orientation="h", font=dict(size=10)),
                 height=600,
                 margin=dict(l=50, r=50, t=50, b=100),
                 showlegend=True
             )
-            
-            # Добавляем основную сетку
             fig.update_layout(
                 xaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', griddash='dash'),
                 yaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', griddash='dash')
             )
-            
-            # Добавляем вертикальные полосы для дней
             try:
                 dates = [datetime.strptime(str(x), '%d.%m %H:%M') for x in x_data]
                 days = [d.date() for d in dates]
@@ -267,16 +245,8 @@ if uploaded_file is not None or os.path.exists(default_file):
                         end_idx = day_indices[-1] + 1 if day_indices[-1] < len(x_data) - 1 else day_indices[-1]
                         fill_color = '#FFFFE0' if i % 2 == 0 else 'white'
                         shapes.append(dict(
-                            type="rect",
-                            x0=start_idx,
-                            x1=end_idx,
-                            y0=0,
-                            y1=1,
-                            yref="paper",
-                            fillcolor=fill_color,
-                            opacity=0.9,
-                            layer="below",
-                            line_width=0
+                            type="rect", x0=start_idx, x1=end_idx, y0=0, y1=1, yref="paper",
+                            fillcolor=fill_color, opacity=0.9, layer="below", line_width=0
                         ))
                 fig.update_layout(shapes=shapes)
             except ValueError:
@@ -284,22 +254,13 @@ if uploaded_file is not None or os.path.exists(default_file):
                 for i in range(len(x_data)):
                     fill_color = '#FFFFE0' if i % 2 == 0 else 'white'
                     shapes.append(dict(
-                        type="rect",
-                        x0=i,
-                        x1=i + 1,
-                        y0=0,
-                        y1=1,
-                        yref="paper",
-                        fillcolor=fill_color,
-                        opacity=0.3,
-                        layer="below",
-                        line_width=0
+                        type="rect", x0=i, x1=i + 1, y0=0, y1=1, yref="paper",
+                        fillcolor=fill_color, opacity=0.3, layer="below", line_width=0
                     ))
                 fig.update_layout(shapes=shapes)
             
-            # Отображение графика в Streamlit
             st.plotly_chart(fig, use_container_width=True)
-            
+        
         else:
             st.write("Пожалуйста, выберите хотя бы одну характеристику.")
     except Exception as e:
