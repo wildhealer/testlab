@@ -27,8 +27,12 @@ def get_cell_color(workbook, sheet_name, row, col):
             rgb = actual_fill.fgColor.rgb
             if rgb:
                 rgb_lower = rgb.lower()
+                # Проверка на красный
                 if rgb_lower in ['ffff0000', '00ff0000', 'ff0000', 'ff0000ff']:
                     return 'red'
+                # Проверка на жёлтый
+                elif rgb_lower in ['ffffff00', '00ffff00', 'ffff00']:
+                    return 'yellow'
         return None
     except Exception:
         return None
@@ -44,18 +48,18 @@ def get_download_link(file_path, file_name):
 
 # Функция для создания HTML-превью таблицы с цветами, широким ползунком и автопрокруткой
 def create_html_table(df, workbook, sheet_name):
-    """Создаёт HTML-таблицу с учётом цвета ячеек, горизонтальной прокруткой и автопрокруткой вправо."""
+    """Создаёт HTML-таблицу с учётом цвета ячеек (красный и жёлтый), горизонтальной прокруткой и автопрокруткой вправо."""
     html = """
     <style>
         .table-container::-webkit-scrollbar {
-            height: 12px;  /* Увеличиваем высоту ползунка */
+            height: 12px;
         }
         .table-container::-webkit-scrollbar-thumb {
-            background-color: #888;  /* Цвет ползунка */
-            border-radius: 6px;      /* Закругление краёв */
+            background-color: #888;
+            border-radius: 6px;
         }
         .table-container::-webkit-scrollbar-thumb:hover {
-            background-color: #555;  /* Цвет при наведении */
+            background-color: #555;
         }
     </style>
     <div class="table-container" style="overflow-x: auto; width: 100%;" id="tableContainer">
@@ -76,7 +80,9 @@ def create_html_table(df, workbook, sheet_name):
             color = get_cell_color(workbook, sheet_name, i + 2, j + 2)
             style = "border: 1px solid #ddd; padding: 8px;"
             if color == 'red':
-                style += "background-color: #ffcccc;"
+                style += "background-color: #ffcccc;"  # Светло-красный
+            elif color == 'yellow':
+                style += "background-color: #ffffcc;"  # Светло-жёлтый
             html += f"<td style='{style}'>{value}</td>"
         html += "</tr>"
     html += "</table>"
