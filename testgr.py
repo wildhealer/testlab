@@ -27,10 +27,8 @@ def get_cell_color(workbook, sheet_name, row, col):
             rgb = actual_fill.fgColor.rgb
             if rgb:
                 rgb_lower = rgb.lower()
-                # Проверка на красный
                 if rgb_lower in ['ffff0000', '00ff0000', 'ff0000', 'ff0000ff']:
                     return 'red'
-                # Проверка на жёлтый
                 elif rgb_lower in ['ffffff00', '00ffff00', 'ffff00']:
                     return 'yellow'
         return None
@@ -65,14 +63,12 @@ def create_html_table(df, workbook, sheet_name):
     <div class="table-container" style="overflow-x: auto; width: 100%;" id="tableContainer">
         <table style="border-collapse: collapse; width: 100%; min-width: max-content;">
     """
-    # Заголовок
     html += "<tr style='background-color: #f2f2f2;'>"
     html += "<th style='border: 1px solid #ddd; padding: 8px; position: sticky; left: 0; background-color: #f2f2f2; z-index: 1;'></th>"
     for col in df.columns:
         html += f"<th style='border: 1px solid #ddd; padding: 8px;'>{col}</th>"
     html += "</tr>"
     
-    # Данные
     for i, (index, row) in enumerate(df.iterrows()):
         html += "<tr>"
         html += f"<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold; position: sticky; left: 0; background-color: #ffffff; z-index: 1;'>{index}</td>"
@@ -80,14 +76,13 @@ def create_html_table(df, workbook, sheet_name):
             color = get_cell_color(workbook, sheet_name, i + 2, j + 2)
             style = "border: 1px solid #ddd; padding: 8px;"
             if color == 'red':
-                style += "background-color: #ffcccc;"  # Светло-красный
+                style += "background-color: #ffcccc;"
             elif color == 'yellow':
-                style += "background-color: #ffffcc;"  # Светло-жёлтый
+                style += "background-color: #ffffcc;"
             html += f"<td style='{style}'>{value}</td>"
         html += "</tr>"
     html += "</table>"
     html += "</div>"
-    # JavaScript для прокрутки вправо
     html += """
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -131,8 +126,8 @@ if uploaded_file is not None or os.path.exists(default_file):
             # Создаём объект Plotly
             fig = go.Figure()
             
-            # Список цветов для линий/столбцов
-            line_colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'yellow', 'black']
+            # Список цветов в HEX-формате
+            line_colors = ['#0000FF', '#FF0000', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00', '#000000']  # blue, red, green, cyan, magenta, yellow, black
             if len(params) > len(line_colors):
                 random_colors = [f'#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}' 
                                for _ in range(len(params) - len(line_colors))]
@@ -208,6 +203,12 @@ if uploaded_file is not None or os.path.exists(default_file):
                         ))
                 
                 elif chart_type == "Площадной":
+                    # Преобразуем HEX в RGB и добавляем прозрачность
+                    r = int(color.lstrip('#')[0:2], 16)
+                    g = int(color.lstrip('#')[2:4], 16)
+                    b = int(color.lstrip('#')[4:6], 16)
+                    fillcolor = f'rgba({r}, {g}, {b}, 0.3)'
+                    
                     fig.add_trace(go.Scatter(
                         x=x_data,
                         y=y_data,
@@ -215,7 +216,7 @@ if uploaded_file is not None or os.path.exists(default_file):
                         name=param,
                         fill='tozeroy',
                         line=dict(color=color, width=2),
-                        fillcolor=f'rgba{tuple(int(color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)) + (0.3,)}'
+                        fillcolor=fillcolor
                     ))
             
             # Настройка осей и оформления
