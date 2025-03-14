@@ -172,6 +172,8 @@ if uploaded_file is not None or os.path.exists(default_file):
         else:
             st.warning("Файл voting_heatmap.png не найден в директории скрипта.")
         
+        st.subheader("График")
+        
         # Выбор характеристик и типа графика
         params = st.multiselect("Выберите характеристики", df.index.tolist())
         chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный", "Площадной"])
