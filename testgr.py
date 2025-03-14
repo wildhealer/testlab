@@ -7,7 +7,7 @@ import random
 import os
 from datetime import datetime
 import base64
-from streamlit.components.v1 import html  # Для корректной работы JavaScript
+from streamlit.components.v1 import html
 
 st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
@@ -43,7 +43,7 @@ def get_download_link(file_path, file_name):
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">Скачать {file_name}</a>'
     return href
 
-# Функция для создания HTML-превью таблицы с цветами, широким ползунком и автопрокруткой
+# Функция для создания HTML-превью таблицы с цветами и горизонтальной прокруткой
 def create_html_table(df, workbook, sheet_name):
     """Создаёт HTML-таблицу с учётом цвета ячеек, горизонтальной прокруткой и автопрокруткой вправо."""
     html = """
@@ -125,8 +125,8 @@ if uploaded_file is not None or os.path.exists(default_file):
         # Выбор нескольких характеристик
         params = st.multiselect("Выберите характеристики", df.index.tolist())
         
-        # Выбор типа графика
-        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный", "Площадной"])
+        # Выбор типа графика (без "Площадного")
+        chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный"])
         
         if params:
             # Создаём объект Plotly
@@ -207,17 +207,6 @@ if uploaded_file is not None or os.path.exists(default_file):
                             marker=dict(color='red', size=10, line=dict(color='black', width=1)),
                             showlegend=False
                         ))
-                
-                elif chart_type == "Площадной":
-                    fig.add_trace(go.Scatter(
-                        x=x_data,
-                        y=y_data,
-                        mode='lines',
-                        name=param,
-                        fill='tozeroy',
-                        line=dict(color=color, width=2),
-                        fillcolor=f'rgba{tuple(int(color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)) + (0.3,)}'
-                    ))
             
             # Настройка осей и оформления
             fig.update_layout(
@@ -297,7 +286,7 @@ if uploaded_file is not None or os.path.exists(default_file):
             # Превью Excel-файла
             st.subheader("Превью Excel-файла")
             html_table = create_html_table(df, wb, sheet_name)
-            html(html_table, height=300, scrolling=True)  # Используем st.components.v1.html
+            html(html_table)  # Без высоты и вертикальной прокрутки
             
         else:
             st.write("Пожалуйста, выберите хотя бы одну характеристику.")
