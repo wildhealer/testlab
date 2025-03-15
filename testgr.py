@@ -158,11 +158,11 @@ if uploaded_file is not None or os.path.exists(default_file):
             image_html = f"""
             <style>
                 .image-container {{
-                    width: 100%;
+                    width: 80%;
                     text-align: center;
                 }}
                 .image-container img {{
-                    max-width: 100%;
+                    max-width: 80%;
                     height: auto;
                     cursor: pointer;
                 }}
