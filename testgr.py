@@ -8,12 +8,10 @@ import os
 from datetime import datetime
 import base64
 
-# Устанавливаем широкий макет
 st.set_page_config(layout="wide")
 
-st.title("График!!! из Excel с несколькими характеристиками и точками для красных ячеек")
+st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
 
-# Функции без изменений
 def get_cell_color(workbook, sheet_name, row, col):
     try:
         worksheet = workbook[sheet_name]
@@ -88,19 +86,24 @@ def create_html_table(df, workbook, sheet_name):
     """
     return html
 
-# Функция для создания HTML-таблицы Топ-5
 def create_top5_table(df):
-    # Сортировка по последнему столбцу по убыванию
+    # Получаем последний столбец
     last_column = df.columns[-1]
-    top5_df = df[[last_column]].sort_values(by=last_column, ascending=False).head(5)
-    top5_df.reset_index(inplace=True)
     
-    # Создаём DataFrame для Топ-5
-    top5_data = pd.DataFrame({
-        "Место": range(1, len(top5_df) + 1),
-        "Название": top5_df.index,
-        "Кол-во голосов": top5_df[last_column]
+    # Создаём временный DataFrame с индексом и значениями последнего столбца
+    temp_df = pd.DataFrame({
+        "Название": df.index,
+        "Кол-во голосов": df[last_column]
     })
+    
+    # Сортируем по убыванию и берём топ-5
+    top5_df = temp_df.sort_values(by="Кол-во голосов", ascending=False).head(5)
+    
+    # Добавляем колонку "Место"
+    top5_df["Место"] = range(1, len(top5_df) + 1)
+    
+    # Переупорядочиваем колонки
+    top5_df = top5_df[["Место", "Название", "Кол-во голосов"]]
     
     # HTML для таблицы Топ-5
     html = """
@@ -127,7 +130,7 @@ def create_top5_table(df):
             <th>Кол-во голосов</th>
         </tr>
     """
-    for _, row in top5_data.iterrows():
+    for _, row in top5_df.iterrows():
         html += f"""
         <tr>
             <td>{row['Место']}</td>
