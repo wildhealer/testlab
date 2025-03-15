@@ -205,7 +205,7 @@ if uploaded_file is not None or os.path.exists(default_file):
 
         st.subheader("Графики")
         # Выбор характеристик и типа графика
-        params = st.multiselect("Выберите характеристики", df.index.tolist())
+        params = st.multiselect("Выберите рассказы", df.index.tolist())
         chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный", "Площадной"])
         
         if params:
@@ -254,7 +254,7 @@ if uploaded_file is not None or os.path.exists(default_file):
             fig.update_layout(
                 xaxis_title="Время",
                 yaxis_title="Значение",
-                title="Графики выбранных характеристик",
+                title="Графики выбранных рассказов",
                 xaxis=dict(tickangle=45, tickmode='auto', nticks=10 if len(df.columns) > 10 else None),
                 legend=dict(yanchor="bottom", y=-0.4, xanchor="center", x=0.5, orientation="h", font=dict(size=10)),
                 height=600,
