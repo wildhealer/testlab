@@ -105,7 +105,7 @@ def create_top5_table(df):
     # Переупорядочиваем колонки
     top5_df = top5_df[["Место", "Название", "Кол-во голосов"]]
     
-    # HTML для таблицы Топ-5
+    # Формируем HTML-таблицу
     html = """
     <style>
         .top5-table {
@@ -124,23 +124,29 @@ def create_top5_table(df):
         }
     </style>
     <table class="top5-table">
-        <tr>
-            <th>Место</th>
-            <th>Название</th>
-            <th>Кол-во голосов</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Место</th>
+                <th>Название</th>
+                <th>Кол-во голосов</th>
+            </tr>
+        </thead>
+        <tbody>
     """
     for _, row in top5_df.iterrows():
         html += f"""
-        <tr>
-            <td>{row['Место']}</td>
-            <td>{row['Название']}</td>
-            <td>{row['Кол-во голосов']}</td>
-        </tr>
+            <tr>
+                <td>{row['Место']}</td>
+                <td>{row['Название']}</td>
+                <td>{row['Кол-во голосов']}</td>
+            </tr>
         """
-    html += "</table>"
+    html += """
+        </tbody>
+    </table>
+    """
     return html
-
+    
 # Загрузка файла
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
