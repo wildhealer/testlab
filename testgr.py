@@ -88,6 +88,56 @@ def create_html_table(df, workbook, sheet_name):
     """
     return html
 
+# Функция для создания HTML-таблицы Топ-5
+def create_top5_table(df):
+    # Сортировка по последнему столбцу по убыванию
+    last_column = df.columns[-1]
+    top5_df = df[[last_column]].sort_values(by=last_column, ascending=False).head(5)
+    top5_df.reset_index(inplace=True)
+    
+    # Создаём DataFrame для Топ-5
+    top5_data = pd.DataFrame({
+        "Место": range(1, len(top5_df) + 1),
+        "Название": top5_df.index,
+        "Кол-во голосов": top5_df[last_column]
+    })
+    
+    # HTML для таблицы Топ-5
+    html = """
+    <style>
+        .top5-table {
+            width: 100%;
+            max-width: 500px;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .top5-table th, .top5-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .top5-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <table class="top5-table">
+        <tr>
+            <th>Место</th>
+            <th>Название</th>
+            <th>Кол-во голосов</th>
+        </tr>
+    """
+    for _, row in top5_data.iterrows():
+        html += f"""
+        <tr>
+            <td>{row['Место']}</td>
+            <td>{row['Название']}</td>
+            <td>{row['Кол-во голосов']}</td>
+        </tr>
+        """
+    html += "</table>"
+    return html
+
 # Загрузка файла
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
@@ -109,6 +159,11 @@ if uploaded_file is not None or os.path.exists(default_file):
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
         
+        # Таблица Топ-5
+        st.subheader("Топ-5")
+        top5_html = create_top5_table(df)
+        st.markdown(top5_html, unsafe_allow_html=True)
+        
         # Превью Excel-файла
         st.subheader("Превью Excel-файла")
         html_table = create_html_table(df, wb, sheet_name)
@@ -116,23 +171,20 @@ if uploaded_file is not None or os.path.exists(default_file):
         
         # Добавляем графический файл voting_heatmap.png
         st.subheader("Коррелятор")
-        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)  # Отступ сверху
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
         
-        # Кодируем изображение в base64 для встраивания
         image_path = "voting_heatmap.png"
         if os.path.exists(image_path):
             with open(image_path, "rb") as image_file:
                 encoded_image = base64.b64encode(image_file.read()).decode()
-            
-            # HTML для изображения с масштабированием и полноэкранным режимом
             image_html = f"""
             <style>
                 .image-container {{
-                    width: 80%;
+                    width: 100%;
                     text-align: center;
                 }}
                 .image-container img {{
-                    max-width: 80%;
+                    max-width: 100%;
                     height: auto;
                     cursor: pointer;
                 }}
@@ -171,8 +223,6 @@ if uploaded_file is not None or os.path.exists(default_file):
             st.markdown(image_html, unsafe_allow_html=True)
         else:
             st.warning("Файл voting_heatmap.png не найден в директории скрипта.")
-        
-        st.subheader("График")
         
         # Выбор характеристик и типа графика
         params = st.multiselect("Выберите характеристики", df.index.tolist())
