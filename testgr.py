@@ -87,25 +87,15 @@ def create_html_table(df, workbook, sheet_name):
     return html
 
 def create_top5_table(df):
-    # Получаем последний столбец
     last_column = df.columns[-1]
-    
-    # Создаём временный DataFrame с индексом и значениями последнего столбца
     temp_df = pd.DataFrame({
         "Название": df.index,
         "Кол-во голосов": df[last_column]
     })
-    
-    # Сортируем по убыванию и берём топ-5
     top5_df = temp_df.sort_values(by="Кол-во голосов", ascending=False).head(5)
-    
-    # Добавляем колонку "Место"
     top5_df["Место"] = range(1, len(top5_df) + 1)
-    
-    # Переупорядочиваем колонки
     top5_df = top5_df[["Место", "Название", "Кол-во голосов"]]
     
-    # Формируем HTML-таблицу
     html = """
     <style>
         .top5-table {
@@ -146,7 +136,7 @@ def create_top5_table(df):
     </table>
     """
     return html
-    
+
 # Загрузка файла
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
@@ -292,7 +282,7 @@ if uploaded_file is not None or os.path.exists(default_file):
             )
             fig.update_layout(
                 xaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', griddash='dash'),
-                yaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 200, 0.7)', griddash='dash')
+                yaxis=dict(showgrid=True, gridcolor='rgba(200, 200, 0.7)', griddash='dash')
             )
             try:
                 dates = [datetime.strptime(str(x), '%d.%m %H:%M') for x in x_data]
