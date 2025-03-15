@@ -139,7 +139,10 @@ if uploaded_file is not None or os.path.exists(default_file):
 
         
         # Таблица Топ-5
-        st.subheader(f"Топ-5 ()")    # !!!
+        # st.subheader(f"Топ-5 ()")    # !!!
+
+        last_column = df.columns[-1]  # Получаем название последнего столбца
+        st.subheader(f"Топ-5 ({last_column})")  # Вставляем дату в скобки
         
         top5_html = create_top5_table(df)
         st.markdown(top5_html, unsafe_allow_html=True)
