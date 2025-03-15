@@ -136,9 +136,12 @@ if uploaded_file is not None or os.path.exists(default_file):
         
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
+
+        at_date = wb.sheetnames[-1]            # !!!
         
         # Таблица Топ-5
-        st.subheader("Топ-5")
+        st.subheader(f"Топ-5 ({at_date})")    # !!!
+        
         top5_html = create_top5_table(df)
         st.markdown(top5_html, unsafe_allow_html=True)
         
