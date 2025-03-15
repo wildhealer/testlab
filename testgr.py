@@ -149,6 +149,7 @@ if uploaded_file is not None or os.path.exists(default_file):
         
         # Добавляем графический файл voting_heatmap.png
         st.subheader("Коррелятор")
+        st.markdown(f"За какие пары рассказов голосуют одновременно чаще всего")
         st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
         
         image_path = "voting_heatmap.png"
