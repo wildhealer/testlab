@@ -87,16 +87,18 @@ def create_html_table(df, workbook, sheet_name):
     return html
 
 def create_top5_table(df):
-    last_column = df.columns[-1]
+    # Исключаем последнюю строку (суммарное количество)
+    df_without_total = df.iloc[:-1]
+    
+    last_column = df_without_total.columns[-1]
     temp_df = pd.DataFrame({
-        "Название": df.index,
-        "Кол-во голосов": df[last_column]
+        "Название": df_without_total.index,
+        "Кол-во голосов": df_without_total[last_column]
     })
     top5_df = temp_df.sort_values(by="Кол-во голосов", ascending=False).head(5)
     top5_df["Место"] = range(1, len(top5_df) + 1)
     top5_df = top5_df[["Место", "Название", "Кол-во голосов"]]
     
-    # Формируем HTML-таблицу
     html = '<table style="width: 100%; max-width: 500px; border-collapse: collapse; margin-bottom: 20px;">'
     html += '<thead><tr style="background-color: #f2f2f2;">'
     html += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Место</th>'
