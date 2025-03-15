@@ -140,7 +140,7 @@ if uploaded_file is not None or os.path.exists(default_file):
         at_date = df.[0][-1]            # !!!
         
         # Таблица Топ-5
-        st.subheader(f"Топ-5! ({at_date})")    # !!!
+        st.subheader(f"Топ-5 ({at_date})")    # !!!
         
         top5_html = create_top5_table(df)
         st.markdown(top5_html, unsafe_allow_html=True)
