@@ -11,7 +11,7 @@ import base64
 # Устанавливаем широкий макет
 st.set_page_config(layout="wide")
 
-st.title("График из Excel с несколькими характеристиками и точками для красных ячеек")
+st.title("График!!! из Excel с несколькими характеристиками и точками для красных ячеек")
 
 # Функции без изменений
 def get_cell_color(workbook, sheet_name, row, col):
