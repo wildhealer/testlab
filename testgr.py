@@ -96,47 +96,24 @@ def create_top5_table(df):
     top5_df["Место"] = range(1, len(top5_df) + 1)
     top5_df = top5_df[["Место", "Название", "Кол-во голосов"]]
     
-    html = """
-    <style>
-        .top5-table {
-            width: 100%;
-            max-width: 500px;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        .top5-table th, .top5-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .top5-table th {
-            background-color: #f2f2f2;
-        }
-    </style>
-    <table class="top5-table">
-        <thead>
-            <tr>
-                <th>Место</th>
-                <th>Название</th>
-                <th>Кол-во голосов</th>
-            </tr>
-        </thead>
-        <tbody>
-    """
+    # Формируем HTML-таблицу
+    html = '<table style="width: 100%; max-width: 500px; border-collapse: collapse; margin-bottom: 20px;">'
+    html += '<thead><tr style="background-color: #f2f2f2;">'
+    html += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Место</th>'
+    html += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Название</th>'
+    html += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Кол-во голосов</th>'
+    html += '</tr></thead><tbody>'
+    
     for _, row in top5_df.iterrows():
-        html += f"""
-            <tr>
-                <td>{row['Место']}</td>
-                <td>{row['Название']}</td>
-                <td>{row['Кол-во голосов']}</td>
-            </tr>
-        """
-    html += """
-        </tbody>
-    </table>
-    """
+        html += '<tr>'
+        html += f'<td style="border: 1px solid #ddd; padding: 8px;">{row["Место"]}</td>'
+        html += f'<td style="border: 1px solid #ddd; padding: 8px;">{row["Название"]}</td>'
+        html += f'<td style="border: 1px solid #ddd; padding: 8px;">{row["Кол-во голосов"]}</td>'
+        html += '</tr>'
+    html += '</tbody></table>'
+    
     return html
-
+    
 # Загрузка файла
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
