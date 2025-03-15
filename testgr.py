@@ -137,7 +137,7 @@ if uploaded_file is not None or os.path.exists(default_file):
         df.set_index(df.columns[0], inplace=True)
         sheet_name = wb.sheetnames[0]
 
-        at_date = df.[0][-1]            # !!!
+        at_date = df[0][-1]            # !!!
         
         # Таблица Топ-5
         st.subheader(f"Топ-5 ({at_date})")    # !!!
