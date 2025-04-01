@@ -121,7 +121,7 @@ def create_top5_table(df):
 default_file = "output_highlighted.xlsx"
 uploaded_file = None
 if os.path.exists(default_file):
-    st.markdown(f"Файл по умолчанию доступен: {get_download_link(default_file, default_file)}", unsafe_allow_html=True)
+    st.markdown(f"Файл со статистикой: {get_download_link(default_file, default_file)}", unsafe_allow_html=True)
 else:
     uploaded_file = st.file_uploader("Загрузите Excel файл", type=["xlsx", "xls"])
 
