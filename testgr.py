@@ -10,7 +10,7 @@ import base64
 
 st.set_page_config(layout="wide")
 
-st.title("ЯП-комбайн")
+st.title("ЯП-комбайн (omega42)")
 
 def get_cell_color(workbook, sheet_name, row, col):
     try:
