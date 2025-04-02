@@ -301,6 +301,6 @@ if uploaded_file is not None or os.path.exists(default_file):
             st.plotly_chart(fig, use_container_width=True)
         
         else:
-            st.write("Пожалуйста, выберите хотя бы одну характеристику.")
+            st.write("Пожалуйста, выберите хотя бы один рассказ.")
     except Exception as e:
         st.error(f"Ошибка: {str(e)}")
