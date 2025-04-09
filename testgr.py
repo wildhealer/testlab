@@ -214,7 +214,8 @@ if uploaded_file is not None or os.path.exists(default_file):
         st.subheader("Графики")
         st.markdown("Красная точка - один голос")
 
-        story_list = df.index.tolist()
+        # story_list = df.index.tolist()
+        story_list = df.index[:-1].tolist()
         top5_stories = df.iloc[:-1].sort_values(by=df.columns[-1], ascending=False).head(5).index.tolist()
 
         # Состояния для кнопок
