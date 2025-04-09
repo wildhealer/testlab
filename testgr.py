@@ -210,10 +210,26 @@ if uploaded_file is not None or os.path.exists(default_file):
         else:
             st.warning("Файл voting_heatmap.png не найден в директории скрипта.")
 
+        # Графики
         st.subheader("Графики")
-        st.markdown(f"Красная точка - один голос")
-        # Выбор характеристик и типа графика
-        params = st.multiselect("Выберите рассказы", df.index.tolist())
+        st.markdown("Красная точка - один голос")
+
+        # story_list = df.index.tolist()
+        story_list = df.index[:-1].tolist()
+        top5_stories = df.iloc[:-1].sort_values(by=df.columns[-1], ascending=False).head(5).index.tolist()
+
+        # Состояния для кнопок
+        select_all = st.checkbox("Выбрать все рассказы")
+        select_top5 = st.button("Выбрать топ-5")
+
+        # Приоритет: если выбрано "все", оно важнее кнопки топ-5
+        if select_all:
+            params = st.multiselect("Выберите рассказы", story_list, default=story_list)
+        elif select_top5:
+            params = st.multiselect("Выберите рассказы", story_list, default=top5_stories)
+        else:
+            params = st.multiselect("Выберите рассказы", story_list)
+    
         chart_type = st.selectbox("Выберите тип графика", ["Линейный", "Столбчатый", "Точечный", "Площадной"])
         
         if params:
